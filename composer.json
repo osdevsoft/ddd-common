@@ -1,0 +1,23 @@
+{
+  "name": "osds/ddd-common",
+  "description": "DDD Structure and Infrastructure utils",
+  "authors": [
+    {
+      "name": "Open Source Development Services",
+      "email": "info@osds.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "version": "0.1",
+  "require": {
+    "guzzlehttp/guzzle": "6.3.*"
+  },
+
+  "autoload": {
+    "psr-4": {
+      "Osds\\DDDDCommon\\": [
+        "src/"
+      ]
+    }
+  }
+}
