@@ -1,6 +1,6 @@
 <?php
 
-namespace Osds\Front\Infrastructure\Communication;
+namespace Osds\DDDCommon\Infrastructure\Communication;
 
 use GuzzleHttp\Client as HttpClient;
 
@@ -119,6 +119,18 @@ class OutputRequest
         $this->headers = $headers;
     }
 
+    public function appendHeaders($headers)
+    {
+        $this->setHeaders(array_merge($this->getHeaders(), $headers));
+    }
+    
+    public function addAuthToken($token)
+    {
+        $this->setHeaders(
+            array_merge($this->getHeaders(), ['Authorization' => "Bearer $token"])
+        );
+    }
+
 
     public function sendRequest()
     {
@@ -130,12 +142,11 @@ class OutputRequest
         }
         $serviceUrl .= $this->serviceUrl;
 
+        $this->appendHeaders(['Accept' => 'application/json']);
+
         $client = new HttpClient([
             'base_uri' => $serviceUrl,
-            'headers' => [
-                'Accept' => 'application/json',
-                'X-Auth-Token' => 'PublicTokenForRequestingAPI'
-            ]
+            'headers' => $this->getHeaders()
         ]);
 
         try {
@@ -157,6 +168,7 @@ class OutputRequest
             $response = $client->request(
                 $this->method,
                 $this->requestUrl,
+//                $post_data
                 ['form_params' => $post_data]
             );
             unset($this->data);

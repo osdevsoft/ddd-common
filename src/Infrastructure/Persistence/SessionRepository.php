@@ -1,6 +1,6 @@
 <?php
 
-namespace Osds\Api\Infrastructure\Persistence;
+namespace Osds\DDDCommon\Infrastructure\Persistence;
 
 class SessionRepository
 {
@@ -17,6 +17,9 @@ class SessionRepository
 
     public function find($key)
     {
+        if(!isset($_SESSION[$key])) {
+            return null;
+        }
         return $_SESSION[$key];
     }
 

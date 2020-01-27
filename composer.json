@@ -10,12 +10,13 @@
   "minimum-stability": "dev",
   "version": "0.1",
   "require": {
-    "guzzlehttp/guzzle": "6.3.*"
+    "guzzlehttp/guzzle": "6.3.*",
+    "symfony/twig-pack": "*"
   },
 
   "autoload": {
     "psr-4": {
-      "Osds\\DDDDCommon\\": [
+      "Osds\\DDDCommon\\": [
         "src/"
       ]
     }
