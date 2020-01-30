@@ -24,8 +24,6 @@ class SmartyView extends AbstractView
         exit;
     }
 
-
-
     private function loadFilters()
     {
         $this->templateSystem->addFilter(new \Twig_Filter(
@@ -45,12 +43,16 @@ class SmartyView extends AbstractView
             function ($field, $multiLanguageFields, $value, $language) {
                 if(in_array($field, $multiLanguageFields)) {
                     #it's a multilanguage field
-                    $parsedLanguage = json_decode($value, true);
-                    if($parsedLanguage !== null) {
-                        if(isset($parsedLanguage[$language])) {
-                            return $parsedLanguage[$language];
+                    if(!is_array($value)) {
+                        $multilanguage_value = @json_decode($value, true);
+                    } else {
+                        $multilanguage_value = $value;
+                    }
+                    if($multilanguage_value !== null) {
+                        if(isset($multilanguage_value[$language])) {
+                            return $multilanguage_value[$language];
                         } else {
-                            return reset($parsedLanguage);
+                            return reset($multilanguage_value);
                         }
                     }
                 }
