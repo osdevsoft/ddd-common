@@ -9,8 +9,8 @@ use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\Query;
 
 use Osds\Api\Domain\Exception\ItemNotFoundException;
-use Osds\Api\Infrastructure\Helpers\EntityFactory;
-use Osds\Api\Infrastructure\Helpers\StringConversion;
+use Osds\DDDCommon\Infrastructure\Helpers\EntityFactory;
+use Osds\DDDCommon\Infrastructure\Helpers\StringConversion;
 
 abstract class DoctrineRepository
 {
