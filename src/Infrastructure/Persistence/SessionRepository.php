@@ -17,7 +17,7 @@ class SessionRepository
 
     public function find($key)
     {
-        if(!isset($_SESSION[$key])) {
+        if (!isset($_SESSION[$key])) {
             return null;
         }
         return $_SESSION[$key];

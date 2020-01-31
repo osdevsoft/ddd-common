@@ -10,8 +10,7 @@
   "minimum-stability": "dev",
   "version": "0.1",
   "require": {
-    "guzzlehttp/guzzle": "6.3.*",
-    "symfony/twig-pack": "*"
+    "guzzlehttp/guzzle": "6.3.*"
   },
 
   "autoload": {
