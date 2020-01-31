@@ -1,6 +1,6 @@
 <?php
 
-namespace Osds\Api\Infrastructure\Messaging;
+namespace Osds\DDDCommon\Infrastructure\Messaging;
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;

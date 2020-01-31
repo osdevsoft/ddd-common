@@ -1,6 +1,6 @@
 <?php
 
-namespace Osds\Api\Infrastructure\Helpers;
+namespace Osds\DDDCommon\Infrastructure\Helpers;
 
 class StringConversion
 {

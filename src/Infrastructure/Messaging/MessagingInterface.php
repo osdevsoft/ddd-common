@@ -1,6 +1,6 @@
 <?php
 
-namespace Osds\Api\Infrastructure\Messaging;
+namespace Osds\DDDCommon\Infrastructure\Messaging;
 
 interface MessagingInterface
 {

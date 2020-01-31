@@ -1,6 +1,6 @@
 <?php
 
-namespace Osds\Api\Infrastructure\Log;
+namespace Osds\DDDCommon\Infrastructure\Log;
 
 interface LoggerInterface
 {

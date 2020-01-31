@@ -1,6 +1,6 @@
 <?php
 
-namespace Osds\Api\Infrastructure\Persistence;
+namespace Osds\DDDCommon\Infrastructure\Persistence;
 
 use Doctrine\Common\Annotations\Annotation;
 use Doctrine\Common\Collections\ArrayCollection;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Osds\Api\Infrastructure\Persistence;
+namespace Osds\DDDCommon\Infrastructure\Persistence;
 
 use Osds\Api\Domain\Exception\ItemNotFoundException;
 
