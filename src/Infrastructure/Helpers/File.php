@@ -7,7 +7,7 @@ use Symfony\Component\Yaml\Yaml;
 class File
 {
 
-    public static function parseYaml($yamlContent, $isFile)
+    public static function parseYaml($yamlContent, $isFile = false)
     {
         if($isFile) {
             return Yaml::parseFile($yamlContent);
