@@ -60,7 +60,7 @@ class OutputRequest
         $this->setData($data);
         $this->setHeaders($headers);
         if($auth) {
-            $serviceAuthToken = Auth::getServiceAuthToken($this->serviceAuthUsername, $this->serviceAuthPassword, 'api');
+            $serviceAuthToken = Auth::getServiceAuthToken($this->serviceUrl, $this->serviceAuthUsername, $this->serviceAuthPassword, 'api');
             $this->addAuthToken($serviceAuthToken);
         }
     }
