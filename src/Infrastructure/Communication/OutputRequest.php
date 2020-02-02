@@ -2,6 +2,7 @@
 
 namespace Osds\DDDCommon\Infrastructure\Communication;
 
+use Osds\Auth\Infrastructure\UI\StaticClass\Auth;
 use GuzzleHttp\Client as HttpClient;
 
 /**
@@ -35,9 +36,14 @@ class OutputRequest
      */
     protected $headers = array();
 
-    public function __construct($serviceUrl)
+    private $serviceAuthUsername;
+    private $serviceAuthPassword;
+
+    public function __construct($serviceUrl, $username, $password)
     {
         $this->serviceUrl = $serviceUrl;
+        $this->serviceAuthUsername = $username;
+        $this->serviceAuthPassword = $password;
     }
 
     /**
@@ -47,12 +53,16 @@ class OutputRequest
      * @param array $data The parameters
      * @param array $headers The HTTP headers
      */
-    public function setQuery($requestUrl = null, $method = null, $data = null, array $headers = array())
+    public function setQuery($requestUrl = null, $method = null, $data = null, array $headers = array(), $auth = true)
     {
         $this->setRequestUrl($requestUrl);
         $this->setMethod($method);
         $this->setData($data);
         $this->setHeaders($headers);
+        if($auth) {
+            $serviceAuthToken = Auth::getServiceAuthToken($this->serviceAuthUsername, $this->serviceAuthPassword, 'api');
+            $this->addAuthToken($serviceAuthToken);
+        }
     }
 
     /**
