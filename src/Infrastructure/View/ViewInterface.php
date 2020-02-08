@@ -9,6 +9,10 @@ interface ViewInterface
 
     public function setVariable($key, $value);
 
+    public function getVariables();
+
+    public function getVariable($key);
+
     public function setTemplate($template);
 
     public function getTemplate();

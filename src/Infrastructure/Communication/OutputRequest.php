@@ -2,8 +2,9 @@
 
 namespace Osds\DDDCommon\Infrastructure\Communication;
 
-use Osds\Auth\Infrastructure\UI\StaticClass\Auth;
 use GuzzleHttp\Client as HttpClient;
+use Osds\Auth\Infrastructure\UI\ServiceAuth;
+use Osds\DDDCommon\Infrastructure\Helpers\Server;
 
 /**
  * Class used to make HTTP requests
@@ -14,7 +15,8 @@ use GuzzleHttp\Client as HttpClient;
 
 class OutputRequest
 {
-    protected $serviceUrl;
+    protected $serviceAuth;
+    protected $apiUrl;
     
     /**
      * @var string
@@ -36,14 +38,15 @@ class OutputRequest
      */
     protected $headers = array();
 
-    private $serviceAuthUsername;
-    private $serviceAuthPassword;
+    protected $userAuth = false;
 
-    public function __construct($serviceUrl, $username, $password)
+    public function __construct(
+        ServiceAuth $serviceAuth,
+        $apiUrl
+    )
     {
-        $this->serviceUrl = $serviceUrl;
-        $this->serviceAuthUsername = $username;
-        $this->serviceAuthPassword = $password;
+        $this->serviceAuth = $serviceAuth;
+        $this->apiUrl = $apiUrl;
     }
 
     /**
@@ -53,16 +56,13 @@ class OutputRequest
      * @param array $data The parameters
      * @param array $headers The HTTP headers
      */
-    public function setQuery($requestUrl = null, $method = null, $data = null, array $headers = array(), $auth = true)
+    public function setQuery($requestUrl = null, $method = null, $data = null, array $headers = array(), $userAuth = false)
     {
         $this->setRequestUrl($requestUrl);
         $this->setMethod($method);
         $this->setData($data);
         $this->setHeaders($headers);
-        if($auth) {
-            $serviceAuthToken = Auth::getServiceAuthToken($this->serviceUrl, $this->serviceAuthUsername, $this->serviceAuthPassword, 'api');
-            $this->addAuthToken($serviceAuthToken);
-        }
+        $this->setUserAuth($userAuth);
     }
 
     /**
@@ -134,6 +134,11 @@ class OutputRequest
         $this->setHeaders(array_merge($this->getHeaders(), $headers));
     }
     
+    public function setUserAuth($userAuth)
+    {
+        $this->userAuth = $userAuth;
+    }
+    
     public function addAuthToken($token)
     {
         $this->setHeaders(
@@ -142,15 +147,21 @@ class OutputRequest
     }
 
 
-    public function sendRequest()
+    public function sendRequest($service)
     {
-        $this->data['get']['originSite'] = 'NexinEs';
+        $originSite = Server::getDomainInfo()['snakedId'];
+        $bearer = $this->serviceAuth->getServiceAuthToken($service, $originSite);
+        if(!strstr($this->requestUrl, 'originSite')) {
+            $this->data['get']['originSite'] = $originSite;
+        }
+        $this->addAuthToken($bearer);
+
         $serviceUrl = '';
-        if(strpos($this->serviceUrl, 'http') === false)
+        if(strpos($this->apiUrl, 'http') === false)
         {
             $serviceUrl = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'];
         }
-        $serviceUrl .= $this->serviceUrl;
+        $serviceUrl .= $this->apiUrl;
 
         $this->appendHeaders(['Accept' => 'application/json']);
 
@@ -181,7 +192,7 @@ class OutputRequest
 //                $post_data
                 ['form_params' => $post_data]
             );
-            unset($this->data);
+            unset($this->data['get']);
         } catch (\Throwable $throwable) {
             throw new \Exception($throwable);
         }
@@ -195,8 +206,27 @@ class OutputRequest
             $data = $response->getBody();
         }
 
-        return json_decode(json_encode($data), true);
+        $data = json_decode(json_encode($data), true);
 
+        $this->treatResponse($data, $service);
+
+        return $data;
+
+    }
+
+    private function treatResponse($data, $service)
+    {
+        if(isset($data['error_code'])) {
+            switch($data['error_code']) {
+                case 401:
+                    $this->serviceAuth->removeServiceAuthToken($service);
+                    $this->sendRequest($service);
+            }
+        }
+
+        if(isset($data['renewedServiceToken'])) {
+            $this->serviceAuth->storeServiceAuthToken($service, $data['renewedServiceToken']);
+        }
     }
 
 }

@@ -18,6 +18,12 @@ abstract class Path
             $path = '';
         }
 
+        $path .= $paths[$type];
+
+        if($id != null) {
+            $path = sprintf($path, $id);
+        }
+
         if($create) {
             if($full == false) {
                 $path = $_SERVER['DOCUMENT_ROOT'] . $path;
@@ -25,7 +31,6 @@ abstract class Path
             @mkdir($path, 0777, true);
         }
 
-        $path .= sprintf($paths[$type], $id);
         return $path;
     }
 

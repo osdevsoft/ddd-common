@@ -27,7 +27,11 @@ abstract class AbstractView implements ViewInterface
     
     public function getVariable($key)
     {
-        return $this->variables[$key];
+        if(isset($this->variables[$key])) {
+            return $this->variables[$key];
+        } else {
+            return null;
+        }
     }
 
     public function setTemplate($template)

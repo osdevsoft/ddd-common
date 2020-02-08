@@ -10,6 +10,7 @@ use Doctrine\ORM\Query;
 
 use Osds\Api\Domain\Exception\ItemNotFoundException;
 use Osds\DDDCommon\Infrastructure\Helpers\EntityFactory;
+use Osds\DDDCommon\Infrastructure\Helpers\Server;
 use Osds\DDDCommon\Infrastructure\Helpers\StringConversion;
 
 abstract class DoctrineRepository
@@ -22,7 +23,7 @@ abstract class DoctrineRepository
     public function __construct(
         $client
     ) {
-        $this->entityManager = $client;
+        $this->entityManager = $client->getManager($_REQUEST['originSite']);
     }
 
 
@@ -262,7 +263,10 @@ abstract class DoctrineRepository
 
                 } else {
                     #Many to One (load User from a StaticPage)
-//                    $subentity->__load();
+                    if(get_class($entityItem) != get_class($subentity)) {
+                        #hhmmm... it doesn't work if we try to load the contents from the same entity
+                        $subentity->__load();
+                    }
                     $subItems[] = $subentity;
                 }
 
@@ -387,7 +391,6 @@ abstract class DoctrineRepository
             #we haven't merged this entity yet
             && !in_array($filter_entity, $joined_entities)
         ) {
-//            $referenced_entity = '\App\NexinEs\Domain\Entity\\' . ucfirst($filter_entity);
             $referenced_entity = EntityFactory::getEntity($filter_entity, $this->getNamespaces());
             $referenced_entity_fqname = $this->getEntityData('FQName', $referenced_entity);
             $referenced_entity_fields = $this->getEntityData('fields', $referenced_entity);

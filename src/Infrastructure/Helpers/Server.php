@@ -1,6 +1,6 @@
 <?php
 
-namespace Osds\DDDCommon\Infrastructure\Helpers\Server;
+namespace Osds\DDDCommon\Infrastructure\Helpers;
 
 class Server
 {
@@ -24,6 +24,24 @@ class Server
             }
         }
         return $total_size;
+    }
+
+    public static function getDomainInfo()
+    {
+        $requestOrigin = str_replace($_SERVER['REQUEST_SCHEME'] . '://', '', $_SERVER['HTTP_HOST']);
+
+        $domainData = [
+            'protocol' => $_SERVER['REQUEST_SCHEME'],
+            'requestOrigin' => $requestOrigin,
+            'mainDomain' => '',
+            'snakedId' => ''
+        ];
+        $domainData['mainDomain'] = preg_replace('/^backoffice./','', $requestOrigin);
+        $domainData['snakedId'] = str_replace('www.','', $domainData['mainDomain']);
+//    $domainData['snakedId'] = preg_replace('/.sandbox$/','', $domain);
+        $domainData['snakedId'] = preg_replace('/[^a-zA-Z0-9]/', '_', $domainData['snakedId']);
+
+        return $domainData;
     }
 
 }

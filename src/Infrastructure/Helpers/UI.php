@@ -9,10 +9,10 @@ class UI
     {
         $message = null;
 
-        if (isset($request_data->parameters->get['action_message'])) {
-            $message = ['message' => $request_data->parameters->get['action_message'] ];
-            if (isset($request_data->parameters->get['action_result'])) {
-                $message['type'] = $request_data->parameters->get['action_result'];
+        if (isset($request_data['get']['action_message'])) {
+            $message = ['message' => $request_data['get']['action_message'] ];
+            if (isset($request_data['get']['action_result'])) {
+                $message['type'] = $request_data['get']['action_result'];
             } else {
                 $message['type'] = 'info';
             }
