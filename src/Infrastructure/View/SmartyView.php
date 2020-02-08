@@ -3,6 +3,7 @@
 namespace Osds\DDDCommon\Infrastructure\View;
 
 use Osds\DDDCommon\Infrastructure\Tools;
+use Twig\TwigFilter;
 
 class SmartyView extends AbstractView
 {
@@ -26,19 +27,19 @@ class SmartyView extends AbstractView
 
     private function loadFilters()
     {
-        $this->templateSystem->addFilter(new \Twig_Filter(
+        $this->templateSystem->addFilter(new TwigFilter(
             'bolder',
             function ($string) {
                 return '<b>' . $string . '</b>';
             }
         ));
-        $this->templateSystem->addFilter(new \Twig_Filter(
+        $this->templateSystem->addFilter(new TwigFilter(
             'dump',
             function ($var) {
                 dd($var);
             }
         ));
-        $this->templateSystem->addFilter(new \Twig_Filter(
+        $this->templateSystem->addFilter(new TwigFilter(
             'getLocalizedValue',
             function ($field, $multiLanguageFields, $value, $language) {
                 if(in_array($field, $multiLanguageFields)) {
