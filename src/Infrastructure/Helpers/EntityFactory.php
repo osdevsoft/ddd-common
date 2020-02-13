@@ -33,7 +33,7 @@ class EntityFactory
         }
 
         #no entity found
-        throw new EntityNotFoundException('Entity ' . json_encode($entity) . ' not found');
+        throw new EntityNotFoundException('Entity ' . json_encode($entity) . ' not found', 500);
 
     }
 

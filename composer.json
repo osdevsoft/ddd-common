@@ -7,14 +7,13 @@
       "email": "info@osds.com"
     }
   ],
-  "minimum-stability": "dev",
-  "version": "0.1",
+  "version": "1.0.0",
   "require": {
-    "guzzlehttp/guzzle": "6.3.*",
+    "guzzlehttp/guzzle": "^6.3",
     "symfony/monolog-bundle": "^3.5",
     "php-amqplib/php-amqplib": "^2.11",
     "symfony/orm-pack": "^1.0",
-    "elasticsearch/elasticsearch": "^6.7"
+    "elasticsearch/elasticsearch": "^7.5"
   },
 
   "autoload": {
