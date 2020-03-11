@@ -38,7 +38,7 @@ class Server
         ];
         $domainData['mainDomain'] = preg_replace('/^backoffice./','', $requestOrigin);
         $domainData['snakedId'] = str_replace('www.','', $domainData['mainDomain']);
-//    $domainData['snakedId'] = preg_replace('/.sandbox$/','', $domain);
+        $domainData['snakedId'] = preg_replace('/.sandbox$/','', $domainData['mainDomain']);
         $domainData['snakedId'] = preg_replace('/[^a-zA-Z0-9]/', '_', $domainData['snakedId']);
 
         return $domainData;

@@ -355,6 +355,10 @@ abstract class DoctrineRepository
                                     $fields($value);
                                     $value = $values;
                                 }
+                                break;
+                            case 'GT':
+                                $operand = '>';
+                                break;
                         }
                     } else {
                         $operand = 'LIKE';
