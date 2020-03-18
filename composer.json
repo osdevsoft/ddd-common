@@ -7,13 +7,16 @@
       "email": "info@osds.com"
     }
   ],
-  "version": "1.0.2",
+  "version": "1.0.3",
   "require": {
     "scssphp/scssphp": "^1.0",
     "guzzlehttp/guzzle": "^6.3",
     "symfony/monolog-bundle": "^3.5",
     "php-amqplib/php-amqplib": "^2.11",
     "symfony/orm-pack": "^1.0",
+    "ramsey/uuid": "^3.9",
+    "brick/math": "^0.8",
+    "moontoast/math": "^1.1",
     "elasticsearch/elasticsearch": "^7.5"
   },
 

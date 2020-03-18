@@ -105,7 +105,7 @@ abstract class DoctrineRepository
         #treat fields before updating / inserting
         foreach ($data as $field => $value) {
             $value = $this->treatValuePrePersist($field, $value);
-            if($value == null) {
+            if($value === null) {
                 continue;
             }
             #persisting a referenced entity field
@@ -488,12 +488,14 @@ abstract class DoctrineRepository
 
         #if another entity uuid comes, search for it to reference it
         if ($field != 'uuid' && strstr($field, '_uuid')) {
-            if(empty($value)) return null;
+            if(empty($value)) return '';
             $entity_name = str_replace('_uuid', '', $field);
             $original_value = $value;
-            $value =  $this->getEntityData('repository', EntityFactory::getEntity($entity_name, $this->getNamespaces()))->find(['uuid' => $original_value]);
+            $value = $this->getEntityData('repository', EntityFactory::getEntity($entity_name, $this->getNamespaces()))->findBy(['uuid' => $original_value]);
             if (is_null($value)) {
                 throw new \Exception("$entity_name with uuid '$original_value' not found");
+            } else {
+                $value = $value[0];
             }
         }
 
