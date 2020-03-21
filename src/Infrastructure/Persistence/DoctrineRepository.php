@@ -79,6 +79,9 @@ abstract class DoctrineRepository
         #treat fields before updating / inserting
         foreach ($data as $field => $value) {
             $value = $this->treatValuePrePersist($field, $value);
+            if($value === null) {
+                continue;
+            }
 
             #persisting a referenced entity field
             if (strstr($field, '.')) {
@@ -100,7 +103,7 @@ abstract class DoctrineRepository
     public function update($entityId, $data): string
     {
 
-        $entityData = $this->getEntityData('repository')->find(['uuid' => $entityId]);
+        $entityData = $this->getEntityData('repository')->findBy(['uuid' => $entityId])[0];
 
         #treat fields before updating / inserting
         foreach ($data as $field => $value) {
@@ -109,14 +112,14 @@ abstract class DoctrineRepository
                 continue;
             }
             #persisting a referenced entity field
-            if (strstr($field, '_uuid')) {
-                $referencedEntity = str_replace('Uuid', '', StringConversion::underscoreToCamelCase($field));
-                $this->setEntity($referencedEntity);
-                $referencedEntityItem =
-                    $this->getEntityData('repository')->find(['uuid' => $value]);
-//                $referencedEntityItem->setUuid($value);
-                $value = $referencedEntityItem;
-            }
+//            if (strstr($field, '_uuid')) {
+//                $referencedEntity = str_replace('Uuid', '', StringConversion::underscoreToCamelCase($field));
+//                $this->setEntity($referencedEntity);
+//                $referencedEntityItem =
+//                    $this->getEntityData('repository')->findBy(['uuid' => $value]);
+////                $referencedEntityItem->setUuid($value);
+//                $value = $referencedEntityItem;
+//            }
             $entityData->{"set" . StringConversion::underscoreToCamelCase($field)}($value);
         }
 
@@ -126,17 +129,20 @@ abstract class DoctrineRepository
     }
 
 
-    public function delete($entityId)
+    public function delete($entityUuid)
     {
 
-        $object = $this->getEntityData('repository')->find($entityId);
+        $object = $this->getEntityData('repository')->findBy(['uuid' => $entityUuid]);
         // tell Doctrine you want to (eventually) save the Product (no queries yet)
-        $this->entityManager->remove($object);
+        if(count($object) != 1) {
+            throw new ItemNotFoundException('DeleteItem: Item not found');
+        }
+        $this->entityManager->remove($object[0]);
 
         // actually executes the queries (i.e. the INSERT query)
         $this->entityManager->flush();
 
-        return $entityId;
+        return $entityUuid;
     }
 
     public function getNamespaces()
@@ -488,7 +494,7 @@ abstract class DoctrineRepository
 
         #if another entity uuid comes, search for it to reference it
         if ($field != 'uuid' && strstr($field, '_uuid')) {
-            if(empty($value)) return '';
+            if(empty($value)) return null;
             $entity_name = str_replace('_uuid', '', $field);
             $original_value = $value;
             $value = $this->getEntityData('repository', EntityFactory::getEntity($entity_name, $this->getNamespaces()))->findBy(['uuid' => $original_value]);
@@ -521,12 +527,16 @@ abstract class DoctrineRepository
                 $aei_key = str_replace("\0", "", $aei_key);
                 $aei_key = str_replace("*", "", $aei_key);
                 $aei_key = str_replace($entity_fqn, '', $aei_key);
+                #avoid binary id key
+                if($aei_key === "id") continue;
                 $array_entity_item[$aei_key] = $aei_prop;
             }
-            if (is_object($aei_prop) && strstr($aei_key, 'uuid')) {
+            #foreign object
+            if (is_object($aei_prop) && strstr($aei_key, 'id')) {
                 $aei_key = str_replace("\0", "", $aei_key);
                 $aei_key = str_replace("*", "", $aei_key);
                 $aei_key = str_replace($entity_fqn, '', $aei_key);
+                $aei_key = str_replace('_id', '_uuid', $aei_key);
                 $array_entity_item[$aei_key] = $aei_prop->getUuid();
             }
         }
