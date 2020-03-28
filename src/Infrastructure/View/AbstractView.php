@@ -44,7 +44,7 @@ abstract class AbstractView implements ViewInterface
         return $this->template;
     }
 
-    public function render()
+    public function render($return)
     {
         echo $this->template;
         echo "<pre>";

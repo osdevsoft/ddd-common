@@ -2,12 +2,12 @@
 
 namespace Osds\DDDCommon\Infrastructure\Emailing;
 
-class MailFunction implements EmailServiceInterface
+use Osds\DDDCommon\Infrastructure\View\ViewInterface;
+
+class MailFunction extends AbstractMailer
 {
 
-    public function __construct() {}
-
-    public function send($from, $to, $subject, $body, $headers = [])
+    public function send($from, $to, $subject, $body = '', $headers = [])
     {
         $headers['From'] = $from['name'] . "<{$from['email']}>";
         $sHeaders = '';
@@ -16,6 +16,10 @@ class MailFunction implements EmailServiceInterface
         }
         $sHeaders .= "MIME-Version: 1.0\r\n";
         $sHeaders .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
+
+        if(empty($body)) {
+            $body = $this->view->render(true);
+        }
 
         return mail($to, $subject, $body, $sHeaders);
     }

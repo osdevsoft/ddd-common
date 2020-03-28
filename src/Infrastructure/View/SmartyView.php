@@ -15,14 +15,17 @@ class SmartyView extends AbstractView
         $this->loadFilters();
     }
 
-    public function render()
+    public function render($return = false)
     {
 
-        echo $this->templateSystem->render(
+        $template = $this->templateSystem->render(
             $this->getTemplate() . '.twig',
             $this->getVariables()
         );
-        exit;
+        if($return) {
+            return $template;
+        }
+        die($template);
     }
 
     private function loadFilters()

@@ -17,6 +17,6 @@ interface ViewInterface
 
     public function getTemplate();
     
-    public function render();
+    public function render($return);
 
 }

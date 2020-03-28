@@ -33,6 +33,7 @@ class Server
         $domainData = [
             'protocol' => $_SERVER['REQUEST_SCHEME'],
             'requestOrigin' => $requestOrigin,
+            'fullUri' => $_SERVER['HTTP_ORIGIN'],
             'mainDomain' => '',
             'snakedId' => ''
         ];
