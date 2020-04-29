@@ -7,7 +7,7 @@
       "email": "info@osds.com"
     }
   ],
-  "version": "1.0.7",
+  "version": "1.0.8",
   "require": {
     "scssphp/scssphp": "^1.0",
     "guzzlehttp/guzzle": "^6.3",
