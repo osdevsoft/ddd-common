@@ -15,11 +15,17 @@ class SmartyView extends AbstractView
         $this->loadFilters();
     }
 
+
+    public function createTemplate($templatePath, $templateName)
+    {
+        return $this->templateSystem->createTemplate($templatePath, $templateName);
+    }
+
     public function render($return = false)
     {
 
         $template = $this->templateSystem->render(
-            $this->getTemplate() . '.twig',
+            $this->getTemplate(),
             $this->getVariables()
         );
         if($return) {
@@ -63,6 +69,28 @@ class SmartyView extends AbstractView
                 return $value;
 
 
+            }
+        ));
+        $this->templateSystem->addFilter(new TwigFilter(
+            'contains',
+            function ($field, $string) {
+                return strpos($field, $string);
+            }
+        ));
+        $this->templateSystem->addFilter(new TwigFilter(
+            'getFieldFromArray',
+            function ($array, $field) {
+                $wantedValues = [];
+                foreach($array as $key => $value) {
+                    $wantedValues[] = $value[$field];
+                }
+                return $wantedValues;
+            }
+        ));
+        $this->templateSystem->addFilter(new TwigFilter(
+            'in_array',
+            function ($needle, $haystack) {
+                return in_array($needle, $haystack);
             }
         ));
 

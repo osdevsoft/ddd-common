@@ -9,7 +9,7 @@ class Language
     {
         return
             is_array($field)
-            && array_keys($field) == $languages
+            && array_keys($field) === $languages
             ;
     }
 

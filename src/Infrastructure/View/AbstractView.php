@@ -34,6 +34,11 @@ abstract class AbstractView implements ViewInterface
         }
     }
 
+    public function createTemplate($templatePath, $templateName)
+    {
+        return file_get_contents($templatePath);
+    }
+
     public function setTemplate($template)
     {
         $this->template = $template;
@@ -44,7 +49,7 @@ abstract class AbstractView implements ViewInterface
         return $this->template;
     }
 
-    public function render($return)
+    public function render($return = false)
     {
         echo $this->template;
         echo "<pre>";

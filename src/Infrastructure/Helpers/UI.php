@@ -32,7 +32,7 @@ class UI
             $url .= '?action_message=' . $message;
 
             if ($error != null) {
-                $url .= '<br>';
+                $url .= '&action_error=';
                 if (is_string($error)) {
                     $url .= $error;
                 } else {

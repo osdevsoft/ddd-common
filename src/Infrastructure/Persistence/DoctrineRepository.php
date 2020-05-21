@@ -40,7 +40,6 @@ abstract class DoctrineRepository
         $this->setEntity($entity);
         $tableName = $this->getEntityData('table');
         #get repository and query builder for the queries
-
         $queryBuilder = $this->getEntityData('repository')->createQueryBuilder($tableName);
 
         list($queryBuilder, $joinedEntities) =
@@ -70,62 +69,32 @@ abstract class DoctrineRepository
     }
 
 
-    public function insert($entity_uuid, $data): string
+    public function insert($entityUuid, $data): string
     {
-        $data['uuid'] = $entity_uuid;
+        #add it at the beginning in order to have it for the rest of requests
+        $data = ['uuid' => $entityUuid] + $data;
         $entity = $this->entity;
-        $repository = new $entity();
+        $entityData = new $entity();
 
         #treat fields before updating / inserting
-        foreach ($data as $field => $value) {
-            $value = $this->treatValuePrePersist($field, $value);
-            if($value === null) {
-                continue;
-            }
+        $entityData = $this->prepareEntityToPersist($data, $entityData, $entityUuid);
 
-            #persisting a referenced entity field
-            if (strstr($field, '.')) {
-                $field = preg_replace('/\..*/', '', StringConversion::underscoreToCamelCase($field));
-                $this->setEntity($field);
-                $referencedEntity =
-                    $this->getEntityData('repository')->find(['uuid' => $value]);
-                $referencedEntity->setUuid($value);
-                $value = $referencedEntity;
-            }
-            $repository->{"set" . StringConversion::underscoreToCamelCase($field)}($value);
-        }
-
-        $this->entityManager->persist($repository);
+        $this->entityManager->persist($entityData);
         $result = $this->entityManager->flush();
-        return $entity_uuid;
+        return $entityUuid;
     }
 
-    public function update($entityId, $data): string
+    public function update($entityUuid, $data): string
     {
 
-        $entityData = $this->getEntityData('repository')->findBy(['uuid' => $entityId])[0];
+        $entityData = $this->getEntityData('repository')->findBy(['uuid' => $entityUuid])[0];
 
         #treat fields before updating / inserting
-        foreach ($data as $field => $value) {
-            $value = $this->treatValuePrePersist($field, $value);
-            if($value === null) {
-                continue;
-            }
-            #persisting a referenced entity field
-//            if (strstr($field, '_uuid')) {
-//                $referencedEntity = str_replace('Uuid', '', StringConversion::underscoreToCamelCase($field));
-//                $this->setEntity($referencedEntity);
-//                $referencedEntityItem =
-//                    $this->getEntityData('repository')->findBy(['uuid' => $value]);
-////                $referencedEntityItem->setUuid($value);
-//                $value = $referencedEntityItem;
-//            }
-            $entityData->{"set" . StringConversion::underscoreToCamelCase($field)}($value);
-        }
+        $entityData = $this->prepareEntityToPersist($data, $entityData, $entityUuid);
 
-        $this->entityManager->merge($entityData);
+        $this->entityManager->persist($entityData);
         $result = $this->entityManager->flush();
-        return $entityId;
+        return $entityUuid;
     }
 
 
@@ -144,6 +113,79 @@ abstract class DoctrineRepository
 
         return $entityUuid;
     }
+
+
+
+    /**
+     * @param $data
+     * @param $entityData
+     * @param $entityId
+     * @return mixed
+     * @throws \Exception
+     */
+    private function prepareEntityToPersist($data, $entityData, $entityId)
+    {
+        foreach ($data as $field => $value) {
+
+            if (strstr($field, 'many_reference_') !== false) {
+                #this field is a reference of another entity with many options
+                #this means we have to delete them in order to add them again with the ones provided
+                $field = str_replace('many_reference_', '', $field);
+                $entityData->{"unset" . StringConversion::underscoreToCamelCase($field)}();
+                $this->entityManager->persist($entityData);
+                $this->entityManager->flush();
+                $entityData = $this->getEntityData('repository')->findBy(['uuid' => $entityId])[0];
+
+                $referencedEntities = explode('%many%', $value);
+                foreach ($referencedEntities as $referencedEntity) {
+                    $value = $this->treatValuePrePersist($field, $referencedEntity);
+                    if ($value === null) continue;
+                    $entityData->{"set" . StringConversion::underscoreToCamelCase($field)}($value);
+                    $this->entityManager->persist($entityData);
+                    $this->entityManager->flush();
+                    $entityData = $this->getEntityData('repository')->findBy(['uuid' => $entityId])[0];
+                }
+
+            } else {
+                #set a "normal" value. It could also be a many2one2many
+                $value = $this->treatValuePrePersist($field, $value);
+                if ($value === null) continue;
+                $entityData->{"set" . StringConversion::underscoreToCamelCase($field)}($value);
+            }
+        }
+        return $entityData;
+    }
+
+
+
+    private function treatValuePrePersist($field, $value)
+    {
+        #if matches a yyyy-mm-dd, yyyy-mm-dd hh:ii, or yyyy-mm-dd hh:ii:ss
+        if (is_string($value) &&
+            preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}( [0-9]{2}:[0-9]{2}(:[0-9]{2})?)?$/', $value)) {
+            #add seconds to allow this type of date (yyyy-mm-dd hh:ii)
+            if (preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$/', $value)) {
+                $value .= ':00';
+            }
+            $value = new \DateTime($value);
+        }
+
+        #if another entity uuid comes, search for it to reference it
+        if ($field != 'uuid' && strstr($field, '_uuid')) {
+            if(empty($value)) return null;
+            $entity_name = str_replace('_uuid', '', $field);
+            $original_value = $value;
+            $value = $this->getEntityData('repository', EntityFactory::getEntity($entity_name, $this->getNamespaces()))->findBy(['uuid' => $original_value]);
+            if (is_null($value)) {
+                throw new \Exception("$entity_name with uuid '$original_value' not found");
+            } else {
+                $value = $value[0];
+            }
+        }
+
+        return $value;
+    }
+
 
     public function getNamespaces()
     {
@@ -207,21 +249,6 @@ abstract class DoctrineRepository
             foreach ($associations as $association) {
                 $targetEntity = EntityFactory::getEntity($association['targetEntity'], $this->getNamespaces());
                 $references[] = $this->getEntityData('table', $targetEntity);
-                /*
-                if (isset($association['mappedBy'])) {
-                    $relations['parent'][] = [
-                        'parent_field' => 'uuid',
-                        'child_entity' => $this->getEntityName($association['targetEntity']),
-                        'child_field' => $association['mappedBy']
-                    ];
-                } else {
-                    $relations['child'][] = [
-                        'parent_field' => 'uuid',
-                        'parent_entity' => $this->getEntityName($association['targetEntity']),
-                        'child_field' => $association['fieldName']
-                    ];
-                }
-                */
             }
         }
 
@@ -480,34 +507,6 @@ abstract class DoctrineRepository
         return [$query_builder, $total_items];
     }
 
-    private function treatValuePrePersist($field, $value)
-    {
-        #if matches a yyyy-mm-dd, yyyy-mm-dd hh:ii, or yyyy-mm-dd hh:ii:ss
-        if (is_string($value) &&
-            preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}( [0-9]{2}:[0-9]{2}(:[0-9]{2})?)?$/', $value)) {
-            #add seconds to allow this type of date (yyyy-mm-dd hh:ii)
-            if (preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$/', $value)) {
-                $value .= ':00';
-            }
-            $value = new \DateTime($value);
-        }
-
-        #if another entity uuid comes, search for it to reference it
-        if ($field != 'uuid' && strstr($field, '_uuid')) {
-            if(empty($value)) return null;
-            $entity_name = str_replace('_uuid', '', $field);
-            $original_value = $value;
-            $value = $this->getEntityData('repository', EntityFactory::getEntity($entity_name, $this->getNamespaces()))->findBy(['uuid' => $original_value]);
-            if (is_null($value)) {
-                throw new \Exception("$entity_name with uuid '$original_value' not found");
-            } else {
-                $value = $value[0];
-            }
-        }
-
-        return $value;
-    }
-
     /**
      * converts doctrine entity to array
      *
@@ -532,14 +531,24 @@ abstract class DoctrineRepository
                 $array_entity_item[$aei_key] = $aei_prop;
             }
             #foreign object
-            if (is_object($aei_prop) && strstr($aei_key, 'id')) {
+            else if (is_object($aei_prop)) {
                 $aei_key = str_replace("\0", "", $aei_key);
                 $aei_key = str_replace("*", "", $aei_key);
                 $aei_key = str_replace($entity_fqn, '', $aei_key);
-                $aei_key = str_replace('_id', '_uuid', $aei_key);
-                $array_entity_item[$aei_key] = $aei_prop->getUuid();
+                if(strtolower(get_class($aei_prop)) == 'datetime') {
+                    $array_entity_item[$aei_key] = $aei_prop->format('Y-m-d H:i:s');
+                }
+                else if (strstr($aei_key, 'id')) {
+                    #many to one
+                    $aei_key = str_replace('_id', '_uuid', $aei_key);
+                    $array_entity_item[$aei_key] = $aei_prop->getUuid();
+                } else if(stristr(get_class($aei_prop), 'PersistentCollection')) {
+                    #many to many
+//                    $array_entity_item[$aei_key] = $aei_prop->getUuid();
+                }
             }
         }
         return $array_entity_item;
     }
+
 }

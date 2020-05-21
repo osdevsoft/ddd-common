@@ -13,10 +13,12 @@ interface ViewInterface
 
     public function getVariable($key);
 
+    public function createTemplate($templatePath, $templateName);
+
     public function setTemplate($template);
 
     public function getTemplate();
     
-    public function render($return);
+    public function render($return = false);
 
 }
