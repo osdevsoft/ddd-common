@@ -428,33 +428,52 @@ abstract class DoctrineRepository
             #we haven't merged this entity yet
             && !in_array($filter_entity, $joined_entities)
         ) {
-            $referenced_entity = EntityFactory::getEntity($filter_entity, $this->getNamespaces());
-            $referenced_entity_fqname = $this->getEntityData('FQName', $referenced_entity);
-            $referenced_entity_fields = $this->getEntityData('fields', $referenced_entity);
-            $joined_entities[] = $referenced_entity_fqname;
 
-            #check in which way we have to make the join "ON"
-            $entity_field = strtolower($parent_entity) . "_uuid";
-            $remote_model_field = strtolower($filter_entity)."_uuid";
-//            if ($referenced_entity->hasProperty($entity_field)) {
-            if (!in_array($entity_field, $referenced_entity_fields)) {
-                $origin_entity = $parent_entity;
-                $origin_field = 'uuid';
-                $joined_entity = $filter_entity;
-                $joined_field = $entity_field;
+            #it's an M2N or M212M?
+            $parent_entity_object = EntityFactory::getEntity($parent_entity, $this->getNamespaces());
+            $associations = $this->getEntityData('associations', $parent_entity_object);
+            if(count($associations)) {
+                foreach($associations as $association) {
+                    if(
+                        isset($association['joinTable'])
+                        && stristr($association['joinTable']['inverseJoinColumns'][0]['name'], $filter_entity) !== false
+                    ) {
+                        #it's an M2N, filter_entity has a join (pivto) table with the parent entity
+                        #join through pivot table
+                        $query_builder->leftJoin($parent_entity . '.' . $association['fieldName'], $filter_entity);
+                    }
+                }
             } else {
-                $origin_entity = $filter_entity;
-                $origin_field = 'uuid';
-                $joined_entity = $parent_entity;
-                $joined_field = $remote_model_field;
+
+                $referenced_entity = EntityFactory::getEntity($filter_entity, $this->getNamespaces());
+                $referenced_entity_fqname = $this->getEntityData('FQName', $referenced_entity);
+                $referenced_entity_fields = $this->getEntityData('fields', $referenced_entity);
+                $joined_entities[] = $referenced_entity_fqname;
+
+                #check in which way we have to make the join "ON"
+                $entity_field = strtolower($parent_entity) . "_uuid";
+                $remote_model_field = strtolower($filter_entity)."_uuid";
+//            if ($referenced_entity->hasProperty($entity_field)) {
+                if (!in_array($entity_field, $referenced_entity_fields)) {
+                    $origin_entity = $parent_entity;
+                    $origin_field = 'uuid';
+                    $joined_entity = $filter_entity;
+                    $joined_field = $entity_field;
+                } else {
+                    $origin_entity = $filter_entity;
+                    $origin_field = 'uuid';
+                    $joined_entity = $parent_entity;
+                    $joined_field = $remote_model_field;
+                }
+
+                $query_builder->leftJoin(
+                    $referenced_entity_fqname,
+                    $filter_entity,
+                    \Doctrine\ORM\Query\Expr\Join::WITH,
+                    "{$origin_entity}.{$origin_field} = {$joined_entity}.{$joined_field}"
+                );
             }
 
-            $query_builder->leftJoin(
-                $referenced_entity_fqname,
-                $filter_entity,
-                \Doctrine\ORM\Query\Expr\Join::WITH,
-                "{$origin_entity}.{$origin_field} = {$joined_entity}.{$joined_field}"
-            );
         }
 
         return [$query_builder, $joined_entities];
@@ -501,7 +520,6 @@ abstract class DoctrineRepository
         $query_builder_total = clone $query_builder;
         $query_builder_total->select("count({$entity}.uuid)");
         $total_items = (int) $query_builder_total->getQuery()->getSingleScalarResult();
-
         $query_builder->setFirstResult($start)->setMaxResults($page_items);
 
         return [$query_builder, $total_items];

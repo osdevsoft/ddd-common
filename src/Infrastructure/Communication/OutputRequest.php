@@ -183,21 +183,24 @@ class OutputRequest
                 $this->requestUrl .= '/' . implode('/', $this->data['uri']);
             }
             if(isset($this->data['get']) && count($this->data['get']) > 0) {
-                $this->requestUrl .= '?' . http_build_query($this->data['get']);
+                $this->requestUrl .= '/?' . http_build_query($this->data['get']);
             }
 
             $response = $client->request(
                 $this->method,
                 $this->requestUrl,
-//                $post_data
-                ['form_params' => $post_data]
+                [
+                    'form_params' => $post_data,
+                    'allow_redirects' => false
+                ]
             );
             unset($this->data['get']);
         } catch (\Throwable $throwable) {
             throw new \Exception($throwable);
         }
         try {
-            $data = json_decode($response->getBody());
+            $data = $response->getBody();
+            $data = json_decode($data);
 
             if (is_null($data)) {
                 $data = $response->getBody();

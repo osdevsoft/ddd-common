@@ -40,8 +40,14 @@ class Server
         $domainData['snakedId'] = str_replace('www.','', $domainData['mainDomain']);
         $domainData['snakedId'] = preg_replace('/.sandbox$/','', $domainData['mainDomain']);
         $domainData['snakedId'] = preg_replace('/[^a-zA-Z0-9-]/', '_', $domainData['snakedId']);
+        $domainData['camelCaseId'] = self::underscoreToCamelCase($domainData['snakedId']);
 
         return $domainData;
+    }
+
+    public static function underscoreToCamelCase($input)
+    {
+        return str_replace(' ', '', ucwords(str_replace('_', ' ', $input)));
     }
 
 }
