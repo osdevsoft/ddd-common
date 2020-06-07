@@ -7,7 +7,7 @@
       "email": "info@osds.com"
     }
   ],
-  "version": "1.0.10",
+  "version": "1.0.12",
   "require": {
     "scssphp/scssphp": "^1.0",
     "guzzlehttp/guzzle": "^6.3",
@@ -17,7 +17,8 @@
     "ramsey/uuid": "^3.9",
     "brick/math": "^0.8",
     "moontoast/math": "^1.1",
-    "elasticsearch/elasticsearch": "^7.5"
+    "elasticsearch/elasticsearch": "^7.5",
+    "league/csv": "^9.6"
   },
 
   "autoload": {

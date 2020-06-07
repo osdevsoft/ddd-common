@@ -151,6 +151,7 @@ class OutputRequest
     {
         $originSite = Server::getDomainInfo()['snakedId'];
         $bearer = $this->serviceAuth->getServiceAuthToken($service, $originSite);
+
         if(!strstr($this->requestUrl, 'originSite')) {
             $this->data['get']['originSite'] = $originSite;
         }
@@ -159,7 +160,8 @@ class OutputRequest
         $serviceUrl = '';
         if(strpos($this->apiUrl, 'http') === false)
         {
-            $serviceUrl = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'];
+            $requestScheme = (isset($_SERVER['REQUEST_SCHEME']))?$_SERVER['REQUEST_SCHEME']:'http';
+            $serviceUrl = $requestScheme . '://' . $_SERVER['HTTP_HOST'];
         }
         $serviceUrl .= $this->apiUrl;
 

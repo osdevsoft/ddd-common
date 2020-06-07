@@ -28,10 +28,16 @@ class Server
 
     public static function getDomainInfo()
     {
-        $requestOrigin = str_replace($_SERVER['REQUEST_SCHEME'] . '://', '', $_SERVER['HTTP_HOST']);
+        if($_SERVER['SERVER_NAME'] == 'localhost') {
+            $requestScheme = 'http';
+            $requestOrigin = 'localhost';
+        } else {
+            $requestScheme = $_SERVER['REQUEST_SCHEME'];
+            $requestOrigin = str_replace($requestScheme . '://', '', $_SERVER['HTTP_HOST']);
+        }
 
         $domainData = [
-            'protocol' => $_SERVER['REQUEST_SCHEME'],
+            'protocol' => $requestScheme,
             'requestOrigin' => $requestOrigin,
             'mainDomain' => '',
             'snakedId' => ''

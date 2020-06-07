@@ -12,13 +12,13 @@ class PSRLogger implements LoggerInterface
         $this->logger = $logger;
     }
 
-    public function info($message)
+    public function info($message, $context = [])
     {
-        $this->logger->info($message);
+        $this->logger->info($message, $context);
     }
 
-    public function error($message)
+    public function error($message, $context = [])
     {
-        $this->logger->error($message);
+        $this->logger->error($message, $context);
     }
 }
